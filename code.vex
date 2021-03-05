@@ -1,0 +1,59 @@
+// read object oppath
+string object = "";
+if (chi("../source_type")==0) 
+    object = chsop("../camera");
+else if (chi("../source_type")==1) 
+    object = chsop("../light");
+else return;
+
+// read object near param 
+string near_param = "";
+append(near_param, object);
+if (object[-1] != "/")
+    append(near_param, "/");
+append(near_param, "near");
+float near = chf(near_param);
+
+// read object far param 
+string far_param = "";
+append(far_param, object);
+if (object[-1] != "/")
+    append(far_param, "/");
+append(far_param, "far");
+float far = chf(far_param);
+
+// near = min(far, near);
+
+float marginsx = chf("../marginsx");
+float marginsy = chf("../marginsy");
+float marginsz = chf("../marginsz");
+
+float l = 0 - marginsx; // left
+float r = 1 + marginsx; // right
+float b = 0 - marginsy; // bottom
+float t = 1 + marginsy; // top
+float n = near + marginsz; // near
+float f = far  - marginsz; // far
+
+if (chi("../has_distance_clip")) {
+    float dist_clip = chf("../dist_clip");
+    f = min(f, dist_clip);
+}
+
+n*= -1; f *= -1; 
+
+addpoint(geoself(), fromNDC(object, set(l,b,f))); //0
+addpoint(geoself(), fromNDC(object, set(r,b,f))); //1
+addpoint(geoself(), fromNDC(object, set(r,b,n))); //2
+addpoint(geoself(), fromNDC(object, set(l,b,n))); //3
+addpoint(geoself(), fromNDC(object, set(l,t,f))); //4
+addpoint(geoself(), fromNDC(object, set(r,t,f))); //5
+addpoint(geoself(), fromNDC(object, set(r,t,n))); //6
+addpoint(geoself(), fromNDC(object, set(l,t,n))); //7
+
+addprim(geoself(), "poly", 1, 5, 4, 0);
+addprim(geoself(), "poly", 2, 6, 5, 1);
+addprim(geoself(), "poly", 3, 7, 6, 2);
+addprim(geoself(), "poly", 0, 4, 7, 3);
+addprim(geoself(), "poly", 2, 1, 0, 3);
+addprim(geoself(), "poly", 5, 6, 7, 4);
